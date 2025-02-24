@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "cd backend && npm install && cd ../frontend && npm install && npm run build && cd .. && node copy-build.js",
-    "start": "cd backend && node server.mjs"
+    "start": "cd backend && PORT=10000 NODE_ENV=production node server.mjs"
   },
   "keywords": [],
   "author": "",

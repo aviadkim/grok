@@ -2,11 +2,19 @@ import { OpenAI } from 'openai';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// Configure CORS for all origins in development
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' ? 'https://your-render-domain.onrender.com' : '*',
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.static('public'));
 
@@ -14,20 +22,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Ensure PORT is a valid number
-const PORT = parseInt(process.env.PORT, 10) || 10000;
-if (isNaN(PORT) || PORT < 1 || PORT > 65535) {
-  console.error('Invalid PORT value:', process.env.PORT);
-  console.log('Falling back to default port 10000');
-}
-
-// Add debug logging
-console.log('Starting server with configuration:', {
-  NODE_ENV: process.env.NODE_ENV,
-  PORT: PORT,
-  HOST: '0.0.0.0',
-  IS_VALID_PORT: !isNaN(PORT) && PORT > 0 && PORT < 65536
-});
+// Ensure port is a number
+const PORT = parseInt(process.env.PORT || '10000', 10);
 
 app.post('/chat', async (req, res) => {
   const userMessage = req.body.message;
@@ -54,8 +50,13 @@ app.post('/chat', async (req, res) => {
   }
 });
 
-// Bind to 0.0.0.0 to accept connections on all network interfaces
+// Serve React app for any other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Bind to 0.0.0.0 to accept all incoming connections
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Server running on port ${PORT}`);
+  console.log('Environment:', process.env.NODE_ENV || 'development');
 });
