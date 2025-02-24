@@ -72,15 +72,14 @@ export default function Chat() {
   return (
     <div className="chat-container">
       <div className="chat-header">
-        <img src="/movna-logo.png" alt="Movna Global" className="logo" />
-        <h1>מוקד שירות Movna Global</h1>
+        <h1>לשירותך תמיד - מובנה גלובל</h1>
       </div>
 
       <div className="messages-container">
         {messages.map((msg, idx) => (
           <div key={idx} className={`message ${msg.role}`}>
             <div className="message-content">
-              {msg.role === 'bot' && <div className="bot-label">נציג שירות</div>}
+              {msg.role === 'bot' && <div className="bot-label">יועץ פיננסי</div>}
               {msg.content}
             </div>
           </div>
@@ -108,8 +107,9 @@ export default function Chat() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="הקלד את שאלתך כאן..."
+          placeholder="כיצד אוכל לסייע לך היום?"
           disabled={isLoading}
+          dir="rtl"
         />
         <button type="submit" disabled={isLoading || !input.trim()}>
           שלח
