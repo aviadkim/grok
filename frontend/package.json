@@ -11,7 +11,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "postbuild": "echo 'Frontend build complete'"
+    "postbuild": "echo 'Build complete'"
   },
   "browserslist": {
     "production": [
