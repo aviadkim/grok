@@ -1,19 +1,27 @@
-import { OpenAIEmbeddings } from 'openai';
+import { OpenAIEmbeddings } from '@langchain/openai';
 import { FaissStore } from 'langchain/vectorstores/faiss';
 import { Document } from 'langchain/document';
 import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export class VectorStoreManager {
   constructor() {
-    this.embeddings = new OpenAIEmbeddings();
+    this.embeddings = new OpenAIEmbeddings({
+      openAIApiKey: process.env.OPENAI_API_KEY
+    });
     this.vectorStore = null;
   }
 
   async initialize() {
     try {
-      // Load Q&A data
+      // Load Q&A data using correct path resolution
+      const qaDataPath = path.join(__dirname, '..', 'knowledge', 'qa_data.json');
       const qaData = JSON.parse(
-        await fs.readFile('../knowledge/qa_data.json', 'utf-8')
+        await fs.readFile(qaDataPath, 'utf-8')
       );
 
       // Convert Q&A pairs to documents
