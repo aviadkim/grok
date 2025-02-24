@@ -1,25 +1,25 @@
 const fs = require('fs');
 const path = require('path');
 
-// Get absolute paths
-const rootDir = process.cwd();
-console.log('Current working directory:', rootDir);
+// Get absolute paths from root directory
+const rootDir = path.resolve(__dirname);
+const sourceDir = path.join(rootDir, 'frontend', 'build');
+const targetDir = path.join(rootDir, 'backend', 'public');
 
-const sourceDir = path.resolve(rootDir, 'frontend', 'build');
-const targetDir = path.resolve(rootDir, 'backend', 'public');
-
+console.log('Root directory:', rootDir);
 console.log('Source directory:', sourceDir);
 console.log('Target directory:', targetDir);
 console.log('Checking if directories exist...');
 
-// Verbose directory checking
+// Check frontend directory
 if (!fs.existsSync(path.join(rootDir, 'frontend'))) {
-    console.error('Frontend directory not found!');
+    console.error('Frontend directory not found at:', path.join(rootDir, 'frontend'));
     process.exit(1);
 }
 
+// Check build directory
 if (!fs.existsSync(sourceDir)) {
-    console.error('Build directory not found!');
+    console.error('Build directory not found at:', sourceDir);
     process.exit(1);
 }
 
