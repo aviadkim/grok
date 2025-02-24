@@ -50,16 +50,20 @@ export default function Chat() {
       const response = await fetch(`${config.apiUrl}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ 
+          message: input,
+          history: messages // Send conversation history
+        }),
       });
 
       if (!response.ok) throw new Error("שגיאת תקשורת");
 
       const data = await response.json();
-      // Simulate typing effect
       const finalText = await simulateTyping(data.message);
       const botMessage = { role: "bot", content: finalText };
-      setMessages(prev => [...prev, botMessage]);
+      
+      // Update messages with new history
+      setMessages(data.history);
     } catch (error) {
       console.error("Error:", error);
       setError("שגיאה בשליחת ההודעה. אנא נסה שוב.");

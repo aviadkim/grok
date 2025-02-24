@@ -36,6 +36,8 @@ await vectorStore.initialize();
 
 app.post('/chat', async (req, res) => {
   const userMessage = req.body.message;
+  const conversationHistory = req.body.history || []; // Get conversation history from request
+
   if (!userMessage) {
     return res.status(400).json({ error: 'Message is required' });
   }
@@ -43,44 +45,51 @@ app.post('/chat', async (req, res) => {
   const isHebrewMessage = isHebrew(userMessage);
   
   try {
-    // Get relevant content with improved filtering
-    const relevantContent = await vectorStore.findRelevantContent(userMessage, 3); // reduced back to 3 for more focused answers
+    const relevantContent = await vectorStore.findRelevantContent(userMessage, 3);
     
+    // Create messages array with conversation history
+    const messages = [
+      { 
+        role: 'system', 
+        content: `אתה נציג שירות בכיר של מובנה גלובל - חברה מובילה בתחום המוצרים הפיננסיים המובנים.
+        מידע בסיסי על החברה:
+        - מובנה גלובל היא חברה המתמחה במוצרים פיננסיים מובנים
+        - החברה עובדת מול בנקים בינלאומיים בדירוג השקעה גבוה
+        - מינימום השקעה: 100,000 ₪
+        - מוצרי החברה משלבים אג"ח, מניות ונגזרים
+        - יתרונות: סחירות יומית, הגנות קרן, תשואות אטרקטיביות
+
+        דגשים לתשובות:
+        1. היה מקצועי אך חם ואישי
+        2. תן דוגמאות מוחשיות למוצרים ספציפיים
+        3. הסבר בצורה פשוטה ומובנת
+        4. הדגש את היתרונות הייחודיים של מובנה גלובל
+        5. הפנה תמיד לייעוץ אישי לפרטים נוספים
+
+        דוגמאות למוצרים:
+        - פיקדון מובנה עם הגנת קרן מלאה
+        - הייטק מובנה עם חשיפה למניות טכנולוגיה
+        - תעודות פיקדון בינלאומיות
+        - מוצרים מובנים עם חשיפה למדדים מובילים
+
+        מידע נוסף מהמאגר:
+        ${relevantContent.join('\n')}
+
+        שפת מענה: עברית בלבד, עם טון מקצועי ואדיב`
+      },
+      // Add conversation history
+      ...conversationHistory.map(msg => ({
+        role: msg.role === 'bot' ? 'assistant' : 'user',
+        content: msg.content
+      })),
+      // Add current message
+      { role: 'user', content: userMessage }
+    ];
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
-      messages: [
-        { 
-          role: 'system', 
-          content: `אתה נציג שירות בכיר של מובנה גלובל - חברה מובילה בתחום המוצרים הפיננסיים המובנים.
-
-מידע בסיסי על החברה:
-- מובנה גלובל היא חברה המתמחה במוצרים פיננסיים מובנים
-- החברה עובדת מול בנקים בינלאומיים בדירוג השקעה גבוה
-- מינימום השקעה: 100,000 ₪
-- מוצרי החברה משלבים אג"ח, מניות ונגזרים
-- יתרונות: סחירות יומית, הגנות קרן, תשואות אטרקטיביות
-
-דגשים לתשובות:
-1. היה מקצועי אך חם ואישי
-2. תן דוגמאות מוחשיות למוצרים ספציפיים
-3. הסבר בצורה פשוטה ומובנת
-4. הדגש את היתרונות הייחודיים של מובנה גלובל
-5. הפנה תמיד לייעוץ אישי לפרטים נוספים
-
-דוגמאות למוצרים:
-- פיקדון מובנה עם הגנת קרן מלאה
-- הייטק מובנה עם חשיפה למניות טכנולוגיה
-- תעודות פיקדון בינלאומיות
-- מוצרים מובנים עם חשיפה למדדים מובילים
-
-מידע נוסף מהמאגר:
-${relevantContent.join('\n')}
-
-שפת מענה: עברית בלבד, עם טון מקצועי ואדיב`
-        },
-        { role: 'user', content: userMessage }
-      ],
-      temperature: 0.7, // הגדלנו בחזרה לקבלת תשובות יותר טבעיות
+      messages: messages,
+      temperature: 0.7,
       max_tokens: 500
     });
     
@@ -91,7 +100,10 @@ ${relevantContent.join('\n')}
       throw new Error('Invalid response generated');
     }
 
-    res.json({ message: botMessage });
+    res.json({ 
+      message: botMessage,
+      history: [...conversationHistory, { role: 'user', content: userMessage }, { role: 'bot', content: botMessage }]
+    });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ 
