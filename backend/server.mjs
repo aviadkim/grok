@@ -43,56 +43,55 @@ app.post('/chat', async (req, res) => {
   const isHebrewMessage = isHebrew(userMessage);
   
   try {
-    // Retrieve more relevant content
-    const relevantContent = await vectorStore.findRelevantContent(userMessage, 5); // increased from 3 to 5
+    // Get relevant content with improved filtering
+    const relevantContent = await vectorStore.findRelevantContent(userMessage, 3); // reduced back to 3 for more focused answers
     
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
         { 
           role: 'system', 
-          content: `אתה נציג שירות מקצועי ומנוסה בחברת מובנה גלובל, המתמחה במוצרים פיננסיים מובנים.
+          content: `אתה נציג שירות מקצועי של חברת מובנה גלובל. עליך לענות בצורה:
+1. מקצועית ומדויקת
+2. ברורה ופשוטה להבנה
+3. ללא קיצורים או ראשי תיבות
+4. רק עם מידע שקיים במאגר
 
-הנחיות חשובות:
-1. השתמש במידע הבא לתשובתך:
-${relevantContent.join('\n')}
+הנחיות נוספות:
+- אל תמציא מידע שלא קיים במאגר
+- אל תשתמש בראשי תיבות או קיצורים
+- השתמש בשפה פשוטה וברורה
+- אם אינך בטוח במשהו, אמור זאת בפירוש
+- הימנע משימוש במונחים טכניים מדי
+- אל תערבב שפות באותה תשובה
 
-2. כללי מפתח:
-- ענה תמיד בצורה מפורטת ומעמיקה
-- הסבר מושגים מורכבים בצורה פשוטה וברורה
-- תן דוגמאות מעשיות כשרלוונטי
-- הצע תמיד המשך שיחה או מידע נוסף
-- שמור על טון מקצועי אך ידידותי
+מידע זמין לתשובתך:
+${relevantContent.join('\n\n')}
 
-3. בכל תשובה:
-- התחל עם הסבר כללי
-- פרט את הנקודות העיקריות
-- הוסף דוגמה או המחשה
-- סיים עם הצעה להמשך התקשרות או מידע נוסף
-
-4. חובה לכלול:
-- אזהרות רגולטוריות כשנדרש
-- הפניה לייעוץ אישי בנושאים רגישים
-- דגש על חשיבות התאמה אישית
-
-שפת תשובה: ${isHebrewMessage ? 'עברית' : 'English'}`
+שפת תשובה: ${isHebrewMessage ? 'עברית בלבד' : 'English only'}`
         },
         { role: 'user', content: userMessage }
       ],
-      temperature: 0.7,
-      max_tokens: 800, // increased for more detailed responses
-      presence_penalty: 0.6, // encourage more varied responses
-      frequency_penalty: 0.3 // discourage repetition
+      temperature: 0.3, // reduced for more consistent responses
+      max_tokens: 400, // reduced for more focused responses
+      presence_penalty: 0.1, // reduced to stay more focused
+      frequency_penalty: 0.1 // reduced to stay more focused
     });
     
     const botMessage = completion.choices[0].message.content;
+    
+    // Validate response
+    if (botMessage.length > 1000 || /[^\u0590-\u05FFa-zA-Z\s.,!?;:()\-\d]/.test(botMessage)) {
+      throw new Error('Invalid response generated');
+    }
+
     res.json({ message: botMessage });
   } catch (error) {
-    console.error('Error:', error.response?.data || error.message);
+    console.error('Error:', error);
     res.status(500).json({ 
       error: isHebrewMessage 
-        ? 'אירעה שגיאה בעיבוד הבקשה שלך' 
-        : 'An error occurred while processing your request'
+        ? 'מצטערים, אירעה שגיאה. אנא נסה שוב או צור קשר עם נציג שירות.' 
+        : 'Sorry, an error occurred. Please try again or contact customer service.'
     });
   }
 });

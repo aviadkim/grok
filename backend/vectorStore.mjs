@@ -45,22 +45,28 @@ export class VectorStoreManager {
     }
   }
 
-  async findRelevantContent(query, k = 5) {
+  async findRelevantContent(query, k = 3) {
     if (!this.vectorStore) {
       throw new Error('Vector store not initialized');
     }
 
-    // Improve search relevance
-    const searchQuery = query.replace(/[?!.,]/g, '').trim();
-    const results = await this.vectorStore.similaritySearch(searchQuery, k, {
-      minScore: 0.6, // Only return relevant matches
-    });
+    // Clean and prepare the query
+    const searchQuery = query
+      .replace(/[?!.,]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
-    // Format results for better context
-    return results.map(doc => {
-      const content = doc.pageContent;
-      const [question, answer] = content.split('\nA: ');
-      return `${answer.trim()}`; // Return just the answer part
+    // Get more results initially and filter them
+    const results = await this.vectorStore.similaritySearch(searchQuery, k * 2);
+    
+    // Filter and sort by relevance
+    const filteredResults = results
+      .filter(doc => doc.pageContent.length < 500) // Avoid too long responses
+      .slice(0, k); // Take only the top k results
+
+    return filteredResults.map(doc => {
+      const [question, answer] = doc.pageContent.split('\nA: ');
+      return answer ? answer.trim() : '';
     });
   }
 }
