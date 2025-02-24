@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Backend for Movna Global chatbot",
   "main": "server.mjs",
+  "type": "module",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
@@ -13,7 +14,10 @@
     "express": "^4.18.2",
     "node-fetch": "^3.3.2",
     "openai": "^4.85.4",
-    "portfinder": "^1.0.32"
+    "portfinder": "^1.0.32",
+    "langchain": "^0.1.0",
+    "faiss-node": "^0.5.1",
+    "@langchain/openai": "^0.0.14"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
