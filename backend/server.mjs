@@ -14,14 +14,19 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Use Render's default port or fallback to 10000
-const PORT = process.env.PORT || 10000;
+// Ensure PORT is a valid number
+const PORT = parseInt(process.env.PORT, 10) || 10000;
+if (isNaN(PORT) || PORT < 1 || PORT > 65535) {
+  console.error('Invalid PORT value:', process.env.PORT);
+  console.log('Falling back to default port 10000');
+}
 
 // Add debug logging
 console.log('Starting server with configuration:', {
   NODE_ENV: process.env.NODE_ENV,
   PORT: PORT,
-  HOST: '0.0.0.0'
+  HOST: '0.0.0.0',
+  IS_VALID_PORT: !isNaN(PORT) && PORT > 0 && PORT < 65536
 });
 
 app.post('/chat', async (req, res) => {
