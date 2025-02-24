@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const sourceDir = path.join(__dirname, 'build');
-const targetDir = path.join(__dirname, '..', 'backend', 'public');
+const sourceDir = path.join(__dirname, 'frontend', 'build');
+const targetDir = path.join(__dirname, 'backend', 'public');
 
 // Create target directory if it doesn't exist
 if (!fs.existsSync(targetDir)) {
@@ -12,11 +12,9 @@ if (!fs.existsSync(targetDir)) {
 // Copy function
 function copyDir(src, dest) {
     const entries = fs.readdirSync(src, { withFileTypes: true });
-
     entries.forEach(entry => {
         const srcPath = path.join(src, entry.name);
         const destPath = path.join(dest, entry.name);
-
         if (entry.isDirectory()) {
             if (!fs.existsSync(destPath)) {
                 fs.mkdirSync(destPath, { recursive: true });
