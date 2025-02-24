@@ -16,6 +16,13 @@ const openai = new OpenAI({
 
 const PORT = process.env.PORT || 3000;
 
+// Add debug logging
+console.log('Environment:', {
+  NODE_ENV: process.env.NODE_ENV,
+  PORT: process.env.PORT,
+  USING_PORT: PORT
+});
+
 app.post('/chat', async (req, res) => {
   const userMessage = req.body.message;
   if (!userMessage) {
@@ -43,4 +50,5 @@ app.post('/chat', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
