@@ -1,15 +1,26 @@
-import React, { useState } from "react";
-import config from "../config";
+import React, { useState, useRef, useEffect } from 'react';
+import config from '../config';
+import './Chat.css';
 
-function Chat() {
+export default function Chat() {
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const messagesEndRef = useRef(null);
 
-  const sendMessage = async () => {
-    if (input.trim() === "") return;
-    
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
     const userMessage = { role: "user", content: input };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
@@ -23,9 +34,7 @@ function Chat() {
         body: JSON.stringify({ message: input }),
       });
 
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
+      if (!response.ok) throw new Error("שגיאת תקשורת");
 
       const data = await response.json();
       const botMessage = { role: "bot", content: data.message };
@@ -40,27 +49,43 @@ function Chat() {
 
   return (
     <div className="chat-container">
-      <div className="messages">
-        {messages.map((msg, index) => (
-          <div key={index} className={`message ${msg.role === "user" ? "user" : "bot"}`}>
-            <strong>{msg.role === "user" ? "אתה" : "נציג"}:</strong> {msg.content}
+      <div className="chat-header">
+        <img src="/movna-logo.png" alt="Movna Global" className="logo" />
+        <h1>מוקד שירות Movna Global</h1>
+      </div>
+
+      <div className="messages-container">
+        {messages.map((msg, idx) => (
+          <div key={idx} className={`message ${msg.role}`}>
+            <div className="message-content">
+              {msg.role === 'bot' && <div className="bot-label">נציג שירות</div>}
+              {msg.content}
+            </div>
           </div>
         ))}
-        {isLoading && <div className="loading">נציג השירות מקליד...</div>}
-        {error && <div className="error">{error}</div>}
+        {isLoading && (
+          <div className="message bot">
+            <div className="typing-indicator">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        )}
+        {error && <div className="error-message">{error}</div>}
+        <div ref={messagesEndRef} />
       </div>
-      <div className="input-area">
+
+      <form onSubmit={handleSubmit} className="input-form">
         <input
+          type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="הקלד את הודעתך כאן..."
+          placeholder="הקלד את שאלתך כאן..."
           disabled={isLoading}
         />
-        <button onClick={sendMessage} disabled={isLoading}>שלח</button>
-      </div>
+        <button type="submit" disabled={isLoading || !input.trim()}>
+          שלח
+        </button>
+      </form>
     </div>
   );
 }
-
-export default Chat;

@@ -14,6 +14,8 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "openai": "^4.85.4",
-    "portfinder": "^1.0.32"
+    "portfinder": "^1.0.32",
+    "langchain": "^0.1.0",
+    "faiss-node": "^0.5.1"
   }
 }
