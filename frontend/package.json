@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build && node copy-build.js",
+    "build": "react-scripts build",
     "postbuild": "echo 'Build complete'"
   },
   "browserslist": {
