@@ -8,6 +8,8 @@ export default function Chat() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
+  const [typingText, setTypingText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -16,6 +18,22 @@ export default function Chat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Simulate progressive typing
+  const simulateTyping = async (text) => {
+    setIsTyping(true);
+    let currentText = '';
+    const words = text.split(' ');
+    
+    for (let word of words) {
+      currentText += word + ' ';
+      setTypingText(currentText);
+      // Random delay between words (50-150ms)
+      await new Promise(resolve => setTimeout(resolve, 50 + Math.random() * 100));
+    }
+    setIsTyping(false);
+    return text;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,6 +44,7 @@ export default function Chat() {
     setInput("");
     setIsLoading(true);
     setError(null);
+    setTypingText('');
 
     try {
       const response = await fetch(`${config.apiUrl}/chat`, {
@@ -37,13 +56,16 @@ export default function Chat() {
       if (!response.ok) throw new Error("שגיאת תקשורת");
 
       const data = await response.json();
-      const botMessage = { role: "bot", content: data.message };
+      // Simulate typing effect
+      const finalText = await simulateTyping(data.message);
+      const botMessage = { role: "bot", content: finalText };
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
       console.error("Error:", error);
       setError("שגיאה בשליחת ההודעה. אנא נסה שוב.");
     } finally {
       setIsLoading(false);
+      setTypingText('');
     }
   };
 
@@ -64,9 +86,16 @@ export default function Chat() {
           </div>
         ))}
         {isLoading && (
-          <div className="message bot">
-            <div className="typing-indicator">
-              <span></span><span></span><span></span>
+          <div className="message bot typing">
+            <div className="message-content">
+              <div className="bot-label">נציג שירות</div>
+              {typingText}
+              <div className="typing-indicator">
+                <span className="typing-text">typing</span>
+                <div className="typing-dots">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
             </div>
           </div>
         )}
