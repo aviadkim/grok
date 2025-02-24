@@ -45,12 +45,22 @@ export class VectorStoreManager {
     }
   }
 
-  async findRelevantContent(query, k = 3) {
+  async findRelevantContent(query, k = 5) {
     if (!this.vectorStore) {
       throw new Error('Vector store not initialized');
     }
 
-    const results = await this.vectorStore.similaritySearch(query, k);
-    return results.map(doc => doc.pageContent);
+    // Improve search relevance
+    const searchQuery = query.replace(/[?!.,]/g, '').trim();
+    const results = await this.vectorStore.similaritySearch(searchQuery, k, {
+      minScore: 0.6, // Only return relevant matches
+    });
+
+    // Format results for better context
+    return results.map(doc => {
+      const content = doc.pageContent;
+      const [question, answer] = content.split('\nA: ');
+      return `${answer.trim()}`; // Return just the answer part
+    });
   }
 }

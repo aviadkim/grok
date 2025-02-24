@@ -43,30 +43,46 @@ app.post('/chat', async (req, res) => {
   const isHebrewMessage = isHebrew(userMessage);
   
   try {
-    // Retrieve relevant content
-    const relevantContent = await vectorStore.findRelevantContent(userMessage);
+    // Retrieve more relevant content
+    const relevantContent = await vectorStore.findRelevantContent(userMessage, 5); // increased from 3 to 5
     
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
         { 
           role: 'system', 
-          content: `You are an expert financial advisor at Movna Global, specializing in structured financial products.
-          Instructions:
-          - Respond in ${isHebrewMessage ? 'Hebrew' : 'English'}
-          - Use the following relevant information to inform your response:
-          ${relevantContent.join('\n')}
-          - Be concise but informative
-          - Explain complex terms simply
-          - Use professional financial terminology in ${isHebrewMessage ? 'Hebrew' : 'English'}
-          - If asked about specific products, always mention the importance of personal consultation
-          - Include relevant regulatory disclaimers when appropriate
-          - If user writes in Hebrew, respond in Hebrew. If user writes in English, respond in English`
+          content: `אתה נציג שירות מקצועי ומנוסה בחברת מובנה גלובל, המתמחה במוצרים פיננסיים מובנים.
+
+הנחיות חשובות:
+1. השתמש במידע הבא לתשובתך:
+${relevantContent.join('\n')}
+
+2. כללי מפתח:
+- ענה תמיד בצורה מפורטת ומעמיקה
+- הסבר מושגים מורכבים בצורה פשוטה וברורה
+- תן דוגמאות מעשיות כשרלוונטי
+- הצע תמיד המשך שיחה או מידע נוסף
+- שמור על טון מקצועי אך ידידותי
+
+3. בכל תשובה:
+- התחל עם הסבר כללי
+- פרט את הנקודות העיקריות
+- הוסף דוגמה או המחשה
+- סיים עם הצעה להמשך התקשרות או מידע נוסף
+
+4. חובה לכלול:
+- אזהרות רגולטוריות כשנדרש
+- הפניה לייעוץ אישי בנושאים רגישים
+- דגש על חשיבות התאמה אישית
+
+שפת תשובה: ${isHebrewMessage ? 'עברית' : 'English'}`
         },
         { role: 'user', content: userMessage }
       ],
       temperature: 0.7,
-      max_tokens: 500
+      max_tokens: 800, // increased for more detailed responses
+      presence_penalty: 0.6, // encourage more varied responses
+      frequency_penalty: 0.3 // discourage repetition
     });
     
     const botMessage = completion.choices[0].message.content;
