@@ -1,8 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 
-const sourceDir = path.join(__dirname, 'frontend', 'build');
-const targetDir = path.join(__dirname, 'backend', 'public');
+// Get absolute paths
+const rootDir = process.cwd();
+const sourceDir = path.join(rootDir, 'frontend', 'build');
+const targetDir = path.join(rootDir, 'backend', 'public');
+
+console.log('Source directory:', sourceDir);
+console.log('Target directory:', targetDir);
 
 // Create target directory if it doesn't exist
 if (!fs.existsSync(targetDir)) {
@@ -27,6 +32,9 @@ function copyDir(src, dest) {
 }
 
 try {
+    if (!fs.existsSync(sourceDir)) {
+        throw new Error(`Source directory not found: ${sourceDir}`);
+    }
     copyDir(sourceDir, targetDir);
     console.log('Build files copied successfully to backend/public');
 } catch (error) {
