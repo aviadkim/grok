@@ -14,13 +14,14 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const PORT = process.env.PORT || 3000;
+// Use Render's default port or fallback to 10000
+const PORT = process.env.PORT || 10000;
 
 // Add debug logging
-console.log('Environment:', {
+console.log('Starting server with configuration:', {
   NODE_ENV: process.env.NODE_ENV,
-  PORT: process.env.PORT,
-  USING_PORT: PORT
+  PORT: PORT,
+  HOST: '0.0.0.0'
 });
 
 app.post('/chat', async (req, res) => {
@@ -48,7 +49,8 @@ app.post('/chat', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Bind to 0.0.0.0 to accept connections on all network interfaces
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
