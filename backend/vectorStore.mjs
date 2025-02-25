@@ -1,5 +1,5 @@
 import { OpenAIEmbeddings } from '@langchain/openai';
-import { FaissStore } from 'langchain/vectorstores/faiss';
+import { FaissStore } from '@langchain/community/vectorstores/faiss';
 import { Document } from 'langchain/document';
 import fs from 'fs/promises';
 import path from 'path';
