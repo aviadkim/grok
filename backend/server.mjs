@@ -17,20 +17,30 @@ const app = express();
 
 // Configure CORS for all origins in development
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 'https://your-render-domain.onrender.com' : '*',
+  origin: process.env.NODE_ENV === 'production' ? '*' : '*',
   methods: ['GET', 'POST'],
   credentials: true
 }));
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '..', 'public')));
+
+// Detect Render environment and adjust static paths
+const isRender = process.env.RENDER === 'true';
+const publicPath = isRender 
+  ? path.join('/opt/render/project/src/backend/public') 
+  : path.join(__dirname, '..', 'public');
+
+// Setup static file serving with correct path
+app.use(express.static(publicPath));
+
+console.log('Static path set to:', publicPath);
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Ensure port is a number
-const PORT = parseInt(process.env.PORT || '10000', 10);
+// Ensure port is a number, and use Render's port if available
+const PORT = parseInt(process.env.PORT || process.env.RENDER_EXTERNAL_PORT || '10000', 10);
 
 // Add language detection function
 function isHebrew(text) {
@@ -101,11 +111,9 @@ app.post('/chat', async (req, res) => {
     
     const botMessage = completion.choices[0].message.content;
     
-    // Modified validation to avoid false positives
-    // Only check for extensive non-Hebrew/English characters
-    if (botMessage.length > 2000 || /[^\u0590-\u05FFa-zA-Z0-9\s.,!?;:()\-\[\]'"\/\\%$€₪+=#@<>]*$/.test(botMessage)) {
-      console.log("Response validation failed, but proceeding anyway:", botMessage.substring(0, 100) + "...");
-    }
+    // Completely remove validation as it's causing issues
+    // Just log the first part of the response for debugging
+    console.log("Response generated:", botMessage.substring(0, 50) + "...");
 
     res.json({ 
       message: botMessage,
@@ -123,11 +131,20 @@ app.post('/chat', async (req, res) => {
 
 // Serve React app for any other routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+  // Use try-catch to provide better error reporting
+  try {
+    const indexPath = path.join(publicPath, 'index.html');
+    console.log('Attempting to serve:', indexPath);
+    res.sendFile(indexPath);
+  } catch (error) {
+    console.error('Error serving index.html:', error);
+    res.status(500).send('Server error: Unable to serve index.html');
+  }
 });
 
 // Bind to 0.0.0.0 to accept all incoming connections
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
   console.log('Environment:', process.env.NODE_ENV || 'development');
+  console.log('Is Render:', isRender);
 });

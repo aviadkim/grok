@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: grok
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node server.mjs
+    envVars:
+      - key: RENDER
+        value: "true"
+      - key: NODE_ENV
+        value: production
